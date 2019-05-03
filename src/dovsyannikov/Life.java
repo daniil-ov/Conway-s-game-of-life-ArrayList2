@@ -62,7 +62,7 @@ public class Life {
             key = StdDraw.nextKeyTyped();
         }
 
-        if (widthField > 2 && widthField < 16000000) {
+        if ((widthField > 2) && (widthField < 16000000)) {
 
             switch (key) {
 
