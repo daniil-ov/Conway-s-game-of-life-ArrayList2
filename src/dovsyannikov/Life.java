@@ -9,19 +9,19 @@ import java.util.ArrayList;
 
 public class Life {
 
-    private static int widthField = 200;
-    private static int heightField = 200;
+    private static int widthField = 5000;
+    private static int heightField = 5000;
 
-    private static int centerX = 0;
-    private static int centerY = -0;
+    private static int centerX = 2500;
+    private static int centerY = -2500;
 
     public static ArrayList<Row> currentLife = new ArrayList<>();
     public static ArrayList<Row> nextStepLife = new ArrayList<>();
 
-    //static String fileName = "caterpillar.rle";
+    static String fileName = "caterpillar.rle";
     //static String fileName = "s0072.rle";
     //static String fileName = "glader.rle";
-    static String fileName = "test3.rle";
+    //static String fileName = "test3.rle";
 
     public static void main(String[] args) {
 
@@ -108,7 +108,7 @@ public class Life {
 
         for (Row strings : currentLife) {
             for (Integer tmpX : strings.listX) {
-                StdDraw.filledSquare(tmpX, strings.y, 0.5);
+                StdDraw.filledSquare(tmpX, strings.y, 0.00001);
             }
         }
 
@@ -234,29 +234,36 @@ public class Life {
 
         while ((tmpIndexRow1 < rowSize1) || (tmpIndexRow2 < rowSize2) || (tmpIndexRow3 < rowSize3)) {
 
-            if (rowSize1 != 0 && (tmpIndexRow1 < rowSize1)) {
-                tmpNumberRow1 = row1.listX.get(tmpIndexRow1);
+
+            tmpNumberRow1 = updateNumber(row1, rowSize1, tmpIndexRow1, tmpNumberRow1);
+            tmpNumberRow2 = updateNumber(row2, rowSize2, tmpIndexRow2, tmpNumberRow2);
+            tmpNumberRow3 = updateNumber(row3, rowSize3, tmpIndexRow3, tmpNumberRow3);
+
+            if (tmpNumberRow1 == tmpNumberRow2) {
+                tmpIndexRow1++;
             }
 
-            if ((rowSize2 != 0) && (tmpIndexRow2 < rowSize2)) {
-                tmpNumberRow2 = row2.listX.get(tmpIndexRow2);
+            if (tmpNumberRow3 == tmpNumberRow2) {
+                tmpIndexRow3++;
             }
 
-            if ((rowSize3 != 0) && (tmpIndexRow3 < rowSize3)) {
-                tmpNumberRow3 = row3.listX.get(tmpIndexRow3);
+            if (tmpNumberRow1 == tmpNumberRow3) {
+                tmpIndexRow3++;
             }
 
-            checkUniqueness(tmpNumberRow1, tmpNumberRow2, tmpNumberRow3, tmpIndexRow1, tmpIndexRow3);
+            tmpNumberRow1 = updateNumber(row1, rowSize1, tmpIndexRow1, tmpNumberRow1);
+            tmpNumberRow2 = updateNumber(row2, rowSize2, tmpIndexRow2, tmpNumberRow2);
+            tmpNumberRow3 = updateNumber(row3, rowSize3, tmpIndexRow3, tmpNumberRow3);
 
-            if (tmpIndexRow1 == rowSize1) {
+            if (tmpIndexRow1 >= rowSize1) {
                 tmpNumberRow1 = 9999999;
             }
 
-            if (tmpIndexRow2 == rowSize2) {
+            if (tmpIndexRow2 >= rowSize2) {
                 tmpNumberRow2 = 99999999;
             }
 
-            if (tmpIndexRow3 == rowSize3) {
+            if (tmpIndexRow3 >= rowSize3) {
                 tmpNumberRow3 = 999999999;
             }
 
@@ -313,30 +320,25 @@ public class Life {
         return tmpRow;
     }
 
-    private static void checkUniqueness(int tmpNumberRow1, int tmpNumberRow2, int tmpNumberRow3,
-                                        int tmpIndexRow1, int tmpIndexRow3) {
 
-        if (tmpNumberRow1 == tmpNumberRow2) {
-            tmpIndexRow1++;
-        }
+    private static int updateNumber(Row row, int rowSize, int tmpIndexRow, int currentNumber) {
+        if (rowSize != 0 && (tmpIndexRow < rowSize)) {
 
-        if (tmpNumberRow3 == tmpNumberRow2) {
-            tmpIndexRow3++;
-        }
+            return row.listX.get(tmpIndexRow);
+        } else {
 
-        if (tmpNumberRow1 == tmpNumberRow3) {
-            tmpIndexRow3++;
+            return currentNumber;
         }
     }
+
 
     private static boolean checkAdd(Row tmpRow, int addPoint, boolean flagCntNb, Row row1, Row row2, Row row3) {
 
         boolean done = false;
 
-
         if (flagCntNb) {
 
-            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || tmpRow.listX.size() == 0)) {
+            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || (tmpRow.listX.size() == 0))) {
                 int tmpCntNb = countNeighbours(row1, row2, row3, addPoint);
                 if ((tmpCntNb == 2) || (tmpCntNb == 3)) {
                     done = true;
@@ -348,7 +350,7 @@ public class Life {
 
         } else {
 
-            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || tmpRow.listX.size() == 0)
+            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || (tmpRow.listX.size() == 0))
                     && (countNeighbours(row1, row2, row3, addPoint) == 3)) {
                 done = true;
             } else {
@@ -364,10 +366,13 @@ public class Life {
         int smallest;
 
         if (a <= b && a <= c) {
+
             smallest = a;
         } else if (b <= c && b <= a) {
+
             smallest = b;
         } else {
+
             smallest = c;
         }
 
@@ -383,39 +388,38 @@ public class Life {
         cnt += tmpCountNeighboursCenter(row1, currentInteger);
         cnt += tmpCountNeighbours(row2, currentInteger);
 
-
         return cnt;
     }
 
-    private static int tmpCountNeighbours(Row row, Integer currentInteger) {
+
+    private static int tmpCountNeighbours(Row row, int currentInteger) {
 
         int cnt = 0;
         int tmpIndex;
 
-        if (row.listX.contains(currentInteger - 1)) {
+        if (row.listX.size() == 0) {
+            return cnt;
+        }
 
-            tmpIndex = row.listX.indexOf(currentInteger - 1);
+        if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger - 1)) != -1){
 
             cnt++;
 
-
-            if ((tmpIndex + 1 > 0) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
+            if ((tmpIndex + 1 > -1) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
 
                 cnt++;
-            } else if ((tmpIndex + 1 > 0) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger + 1)) {
-                
-                cnt++;
-            }
-
-            if ((tmpIndex + 2 > 0) && (tmpIndex + 2 < row.listX.size()) && (row.listX.get(tmpIndex + 2) == currentInteger + 1)) {
+            } else if ((tmpIndex + 1 > -1) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger + 1)) {
 
                 cnt++;
             }
 
+            if ((tmpIndex + 2 > -1) && (tmpIndex + 2 < row.listX.size()) && (row.listX.get(tmpIndex + 2) == currentInteger + 1)) {
 
-        } else if (row.listX.contains(currentInteger)) {
+                cnt++;
+            }
 
-            tmpIndex = row.listX.indexOf(currentInteger);
+
+        } else if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger)) != -1) {
 
             cnt++;
 
@@ -424,8 +428,7 @@ public class Life {
                 cnt++;
             }
 
-
-        } else if (row.listX.contains(currentInteger + 1)) {
+        } else if (binarySearch(row, 0, row.listX.size() - 1, currentInteger + 1) != -1) {
 
             cnt++;
         }
@@ -434,14 +437,16 @@ public class Life {
     }
 
 
-    private static int tmpCountNeighboursCenter(Row row, Integer currentInteger) {
+    private static int tmpCountNeighboursCenter(Row row, int currentInteger) {
 
         int cnt = 0;
         int tmpIndex;
 
-        if (row.listX.contains(currentInteger - 1)) {
+        if (row.listX.size() == 0) {
+            return cnt;
+        }
 
-            tmpIndex = row.listX.indexOf(currentInteger - 1);
+        if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger - 1)) != -1) {
 
             cnt++;
 
@@ -453,11 +458,38 @@ public class Life {
                 }
             }
 
-        } else if (row.listX.contains(currentInteger + 1)) {
+        } else if (binarySearch(row, 0, row.listX.size() - 1, currentInteger + 1) != -1) {
 
             cnt++;
         }
 
         return cnt;
+    }
+
+    private static int binarySearch(Row row, int first, int last, int item) {
+        int position;
+
+        position = (first + last) / 2;
+
+        while ((row.listX.get(position) != item) && (first <= last)) {
+
+            if (row.listX.get(position) > item) {
+                last = position - 1;
+
+            } else {
+
+                first = position + 1;
+            }
+            position = (first + last) / 2;
+        }
+
+        if (first <= last) {
+
+            return position;
+        } else {
+
+            position = -1;
+            return position;
+        }
     }
 }

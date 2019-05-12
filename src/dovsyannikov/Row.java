@@ -33,7 +33,7 @@ public class Row {
         return "String " + y + ", x = " + listX.toString();
     }
 
-    @Override
+    /*@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -42,7 +42,7 @@ public class Row {
 
         if (y != row.y) return false;
         return listX != null ? listX.equals(row.listX) : row.listX == null;
-    }
+    }*/
 
     @Override
     public int hashCode() {
