@@ -7,13 +7,15 @@ import java.util.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import static java.util.Collections.binarySearch;
+
 public class Life {
 
     private static int widthField = 5000;
     private static int heightField = 5000;
 
-    private static int centerX = 2500;
-    private static int centerY = -2500;
+    private static int centerX = 2300;
+    private static int centerY = -2300;
 
     public static ArrayList<Row> currentLife = new ArrayList<>();
     public static ArrayList<Row> nextStepLife = new ArrayList<>();
@@ -21,7 +23,7 @@ public class Life {
     static String fileName = "caterpillar.rle";
     //static String fileName = "s0072.rle";
     //static String fileName = "glader.rle";
-    //static String fileName = "test3.rle";
+    //static String fileName = "test2.rle";
 
     public static void main(String[] args) {
 
@@ -49,7 +51,7 @@ public class Life {
             moveField();
 
             //задержка 0.5 сек
-            //StdDraw.pause(500);
+            //StdDraw.pause(5000);
         }
     }
 
@@ -108,7 +110,7 @@ public class Life {
 
         for (Row strings : currentLife) {
             for (Integer tmpX : strings.listX) {
-                StdDraw.filledSquare(tmpX, strings.y, 0.00001);
+                StdDraw.filledSquare(tmpX, strings.y, 0.000001);
             }
         }
 
@@ -180,41 +182,6 @@ public class Life {
         System.out.println("Время рассчета след. поколения: " + (finish - start));
     }
 
-
-    /*private static Row handlerStrings(Row row, Row row1, Row row2) {
-
-        HashSet<Integer> revivalCells = new HashSet<>();
-        HashSet<Integer> revivalCells2 = new HashSet<>();
-        Row tmpRow = new Row();
-
-        revivalCells.addAll(row.listX);
-        revivalCells.addAll(row1.listX);
-        revivalCells.addAll(row2.listX);
-
-        for (Integer i : revivalCells) {
-            revivalCells2.add(i - 1);
-            revivalCells2.add(i);
-            revivalCells2.add(i + 1);
-        }
-
-        for (Integer tmpInt : row1.listX) {
-
-            int cntNb = countNeighbours(row, row1, row2, tmpInt);
-
-            if ((cntNb == 2) || (cntNb == 3)) {
-                tmpRow.listX.add(tmpInt);
-            }
-        }
-
-        for (Integer tmpInt : revivalCells2) {
-
-            if ((countNeighbours(row, row1, row2, tmpInt) == 3) && !tmpRow.listX.contains(tmpInt)) {
-                tmpRow.listX.add(tmpInt);
-            }
-        }
-
-        return tmpRow;
-    }*/
 
     private static Row handlerStrings(Row row1, Row row2, Row row3) {
 
@@ -401,7 +368,10 @@ public class Life {
             return cnt;
         }
 
-        if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger - 1)) != -1){
+        tmpIndex = binarySearch(row.listX, currentInteger - 1);
+
+
+        if (tmpIndex >= 0){
 
             cnt++;
 
@@ -419,16 +389,16 @@ public class Life {
             }
 
 
-        } else if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger)) != -1) {
+        } else if (((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && (row.listX.get((-tmpIndex) - 1) == currentInteger)) {
 
             cnt++;
 
-            if ((tmpIndex + 1 > 0) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger + 1)) {
+            if ((-tmpIndex > 0) && (-tmpIndex < row.listX.size()) && (row.listX.get(-tmpIndex) == currentInteger + 1)) {
 
                 cnt++;
             }
 
-        } else if (binarySearch(row, 0, row.listX.size() - 1, currentInteger + 1) != -1) {
+        } else if (((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && (row.listX.get((-tmpIndex) - 1) == currentInteger + 1)) {
 
             cnt++;
         }
@@ -446,7 +416,9 @@ public class Life {
             return cnt;
         }
 
-        if ((tmpIndex = binarySearch(row, 0, row.listX.size() - 1, currentInteger - 1)) != -1) {
+        tmpIndex = binarySearch(row.listX, currentInteger - 1);
+
+        if (tmpIndex >= 0) {
 
             cnt++;
 
@@ -458,38 +430,12 @@ public class Life {
                 }
             }
 
-        } else if (binarySearch(row, 0, row.listX.size() - 1, currentInteger + 1) != -1) {
+        } else if ((((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && row.listX.get((-tmpIndex) - 1) == currentInteger + 1) ||
+                ((-tmpIndex >= 0) && (-tmpIndex) < row.listX.size() && row.listX.get(-tmpIndex) == currentInteger + 1)) {
 
             cnt++;
         }
 
         return cnt;
-    }
-
-    private static int binarySearch(Row row, int first, int last, int item) {
-        int position;
-
-        position = (first + last) / 2;
-
-        while ((row.listX.get(position) != item) && (first <= last)) {
-
-            if (row.listX.get(position) > item) {
-                last = position - 1;
-
-            } else {
-
-                first = position + 1;
-            }
-            position = (first + last) / 2;
-        }
-
-        if (first <= last) {
-
-            return position;
-        } else {
-
-            position = -1;
-            return position;
-        }
     }
 }

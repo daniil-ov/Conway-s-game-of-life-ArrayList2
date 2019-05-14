@@ -105,7 +105,7 @@ public class ReadFile {
 
                 tmpCursorY++;
                 tmpCursorX = 0;
-                currentLife.add(new Row());
+                currentLife.add(new Row(-tmpCursorY));
                 break;
         }
     }
