@@ -51,7 +51,7 @@ public class Life {
             moveField();
 
             //задержка 0.5 сек
-            //StdDraw.pause(5000);
+            //StdDraw.pause(500);
         }
     }
 
@@ -195,9 +195,9 @@ public class Life {
         int rowSize2 = row2.listX.size();
         int rowSize3 = row3.listX.size();
 
-        int tmpNumberRow1 = 9999999;
-        int tmpNumberRow2 = 99999999;
-        int tmpNumberRow3 = 999999999;
+        int tmpNumberRow1 = Integer.MAX_VALUE;
+        int tmpNumberRow2 = Integer.MAX_VALUE - 1;
+        int tmpNumberRow3 = Integer.MAX_VALUE - 2;
 
         while ((tmpIndexRow1 < rowSize1) || (tmpIndexRow2 < rowSize2) || (tmpIndexRow3 < rowSize3)) {
 
@@ -223,15 +223,15 @@ public class Life {
             tmpNumberRow3 = updateNumber(row3, rowSize3, tmpIndexRow3, tmpNumberRow3);
 
             if (tmpIndexRow1 >= rowSize1) {
-                tmpNumberRow1 = 9999999;
+                tmpNumberRow1 = Integer.MAX_VALUE;
             }
 
             if (tmpIndexRow2 >= rowSize2) {
-                tmpNumberRow2 = 99999999;
+                tmpNumberRow2 = Integer.MAX_VALUE - 1;
             }
 
             if (tmpIndexRow3 >= rowSize3) {
-                tmpNumberRow3 = 999999999;
+                tmpNumberRow3 = Integer.MAX_VALUE - 2;
             }
 
             if (minNumber(tmpNumberRow1, tmpNumberRow2, tmpNumberRow3) == tmpNumberRow2) {
@@ -303,11 +303,16 @@ public class Life {
 
         boolean done = false;
 
+        int sizeRow = tmpRow.listX.size();
+
         if (flagCntNb) {
 
-            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || (tmpRow.listX.size() == 0))) {
+            if ((((sizeRow > 0) && (tmpRow.listX.get(sizeRow - 1) < addPoint)) || (sizeRow == 0))) {
+
                 int tmpCntNb = countNeighbours(row1, row2, row3, addPoint);
+
                 if ((tmpCntNb == 2) || (tmpCntNb == 3)) {
+
                     done = true;
                 }
 
@@ -317,7 +322,7 @@ public class Life {
 
         } else {
 
-            if ((((tmpRow.listX.size() > 0) && (tmpRow.listX.get(tmpRow.listX.size() - 1) < addPoint)) || (tmpRow.listX.size() == 0))
+            if ((((sizeRow > 0) && (tmpRow.listX.get(sizeRow - 1) < addPoint)) || (sizeRow == 0))
                     && (countNeighbours(row1, row2, row3, addPoint) == 3)) {
                 done = true;
             } else {
@@ -347,95 +352,43 @@ public class Life {
     }
 
 
-    private static int countNeighbours(Row row, Row row1, Row row2, Integer currentInteger) {
+    private static int countNeighbours(Row row1, Row row2, Row row3, Integer currentInteger) {
 
-        int cnt = 0;
+        int count = 0;
 
-        cnt += tmpCountNeighbours(row, currentInteger);
-        cnt += tmpCountNeighboursCenter(row1, currentInteger);
-        cnt += tmpCountNeighbours(row2, currentInteger);
+        int ti = binarySearch(row1.listX, currentInteger);
+        int ci = binarySearch(row2.listX, currentInteger);
+        int bi = binarySearch(row3.listX, currentInteger);
 
-        return cnt;
+        count = (ti >= 0) ? count + 1 : count;
+        count = (bi >= 0) ? count + 1 : count;
+
+        count += countLeftAndRight(row1.listX, ti, currentInteger);
+        count += countLeftAndRight(row2.listX, ci, currentInteger);
+        count += countLeftAndRight(row3.listX, bi, currentInteger);
+
+        return count;
     }
 
+    private static int countLeftAndRight(ArrayList<Integer> listX, int centerIndexRow, Integer currentInteger) {
 
-    private static int tmpCountNeighbours(Row row, int currentInteger) {
+        int cntLeftAndRight = 0;
 
-        int cnt = 0;
-        int tmpIndex;
+        int posLeft = (centerIndexRow >= 0) ? centerIndexRow - 1 : -centerIndexRow - 2; // позиция для проверки левого
+        int posRight = (centerIndexRow >= 0) ? centerIndexRow + 1 : -centerIndexRow - 1; // позиция для проверки правого
 
-        if (row.listX.size() == 0) {
-            return cnt;
+        int size = listX.size();
+
+        if ((posLeft >= 0) && (posLeft < size) && (listX.get(posLeft) == currentInteger - 1)) {
+
+            cntLeftAndRight++;
         }
 
-        tmpIndex = binarySearch(row.listX, currentInteger - 1);
+        if ((posRight >= 0) && (posRight < size) && (listX.get(posRight) == currentInteger + 1)) {
 
-
-        if (tmpIndex >= 0){
-
-            cnt++;
-
-            if ((tmpIndex + 1 > -1) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
-
-                cnt++;
-            } else if ((tmpIndex + 1 > -1) && (tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger + 1)) {
-
-                cnt++;
-            }
-
-            if ((tmpIndex + 2 > -1) && (tmpIndex + 2 < row.listX.size()) && (row.listX.get(tmpIndex + 2) == currentInteger + 1)) {
-
-                cnt++;
-            }
-
-
-        } else if (((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && (row.listX.get((-tmpIndex) - 1) == currentInteger)) {
-
-            cnt++;
-
-            if ((-tmpIndex > 0) && (-tmpIndex < row.listX.size()) && (row.listX.get(-tmpIndex) == currentInteger + 1)) {
-
-                cnt++;
-            }
-
-        } else if (((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && (row.listX.get((-tmpIndex) - 1) == currentInteger + 1)) {
-
-            cnt++;
+            cntLeftAndRight++;
         }
 
-        return cnt;
-    }
-
-
-    private static int tmpCountNeighboursCenter(Row row, int currentInteger) {
-
-        int cnt = 0;
-        int tmpIndex;
-
-        if (row.listX.size() == 0) {
-            return cnt;
-        }
-
-        tmpIndex = binarySearch(row.listX, currentInteger - 1);
-
-        if (tmpIndex >= 0) {
-
-            cnt++;
-
-            for (int i = 1; i < 3; i++) {
-
-                if ((tmpIndex + i > 0) && (tmpIndex + i < row.listX.size()) && (row.listX.get(tmpIndex + i) == currentInteger + 1)) {
-
-                    cnt++;
-                }
-            }
-
-        } else if ((((-tmpIndex) - 1 >= 0) && (-tmpIndex) - 1 < row.listX.size() && row.listX.get((-tmpIndex) - 1) == currentInteger + 1) ||
-                ((-tmpIndex >= 0) && (-tmpIndex) < row.listX.size() && row.listX.get(-tmpIndex) == currentInteger + 1)) {
-
-            cnt++;
-        }
-
-        return cnt;
+        return cntLeftAndRight;
     }
 }
