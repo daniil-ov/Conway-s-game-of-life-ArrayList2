@@ -16,8 +16,8 @@ public class Life {
     private static int centerX = 2300;
     private static int centerY = -2300;
 
-    private static ArrayList<Row> currentLife = new ArrayList<>();
-    private static ArrayList<Row> nextStepLife = new ArrayList<>();
+    public static ArrayList<Row> currentLife = new ArrayList<>();
+    public static ArrayList<Row> nextStepLife = new ArrayList<>();
 
     static String fileName = "caterpillar.rle";
     //static String fileName = "s0072.rle";
