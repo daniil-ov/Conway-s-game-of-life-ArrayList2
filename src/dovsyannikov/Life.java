@@ -6,6 +6,8 @@ import java.awt.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Collections.binarySearch;
 
 public class Life {
@@ -193,231 +195,99 @@ public class Life {
     //на вход получаем три строки и возвращаем готовую цетральную
     private static Row handlerStrings(Row row1, Row row2, Row row3) {
 
-        //строка для записи готовой центральной строки
-        Row tmpRow = new Row();
+        int row1Min = Integer.MAX_VALUE;
+        int row2Min = Integer.MAX_VALUE;
+        int row3Min = Integer.MAX_VALUE;
 
-        //временные индексы трех строк для прохода
-        int tmpIndexRow1 = 0;
-        int tmpIndexRow2 = 0;
-        int tmpIndexRow3 = 0;
+        int row1Max = Integer.MIN_VALUE;
+        int row2Max = Integer.MIN_VALUE;
+        int row3Max = Integer.MIN_VALUE;
 
         //запись размера трех строк
         int rowSize1 = row1.listX.size();
         int rowSize2 = row2.listX.size();
         int rowSize3 = row3.listX.size();
 
-        /*Инициализируем временне числа трех строк максимальным значением, так как для бинарного поиска будем работать с минимальным числом.
-        Разные значения для того, чтобы не повышвть постоянно временные индексы в строках выражениями, которые
-        убирают проверку одинаковых чисел в разных строках.*/
-        int tmpNumberRow1 = Integer.MAX_VALUE;
-        int tmpNumberRow2 = Integer.MAX_VALUE - 1;
-        int tmpNumberRow3 = Integer.MAX_VALUE - 2;
-
-        //пока временные индексы 3 строк будут меньше их размера
-        while ((tmpIndexRow1 < rowSize1) || (tmpIndexRow2 < rowSize2) || (tmpIndexRow3 < rowSize3)) {
-
-            //получаем обновленное число если поменялся индекс
-            tmpNumberRow1 = updateNumber(row1, rowSize1, tmpIndexRow1, tmpNumberRow1);
-            tmpNumberRow2 = updateNumber(row2, rowSize2, tmpIndexRow2, tmpNumberRow2);
-            tmpNumberRow3 = updateNumber(row3, rowSize3, tmpIndexRow3, tmpNumberRow3);
-
-            //повышаем индекс, чтобы не проверять одинаковые числа
-            if (tmpNumberRow1 == tmpNumberRow2) {
-                tmpIndexRow1++;
-            }
-
-            if (tmpNumberRow3 == tmpNumberRow2) {
-                tmpIndexRow3++;
-            }
-
-            if (tmpNumberRow1 == tmpNumberRow3) {
-                tmpIndexRow3++;
-            }
-
-            //получаем уникальные обновленные числа
-            tmpNumberRow1 = updateNumber(row1, rowSize1, tmpIndexRow1, tmpNumberRow1);
-            tmpNumberRow2 = updateNumber(row2, rowSize2, tmpIndexRow2, tmpNumberRow2);
-            tmpNumberRow3 = updateNumber(row3, rowSize3, tmpIndexRow3, tmpNumberRow3);
-
-            //когда индекс >= его размеру, нужно, чтобы он больше никак не участвовал в выборе минимального числа,
-            //поэтому назначаем ему максимальное значение
-            if (tmpIndexRow1 >= rowSize1) {
-                tmpNumberRow1 = Integer.MAX_VALUE;
-            }
-
-            if (tmpIndexRow2 >= rowSize2) {
-                tmpNumberRow2 = Integer.MAX_VALUE - 1;
-            }
-
-            if (tmpIndexRow3 >= rowSize3) {
-                tmpNumberRow3 = Integer.MAX_VALUE - 2;
-            }
-
-            //Для бинарного опоиска находим минимальное число для проверки
-            if (minNumber(tmpNumberRow1, tmpNumberRow2, tmpNumberRow3) == tmpNumberRow2) {
-                //если оказалось, что минимальное число в центральной строке, то
-
-                //проверка левого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow2 - 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow2 - 1);
-                }
-
-                //проверка центрального числа на 2-х или 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow2, true, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow2);
-                }
-
-                //проверка правого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow2 + 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow2 + 1);
-                }
-
-                //повышаем индекс для получения след. числа в центральной строке
-                tmpIndexRow2++;
-
-            } else if (tmpNumberRow1 < tmpNumberRow3) {
-                //если оказалось, что минимальное число в первой строке, то
-
-                //проверка левого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow1 - 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow1 - 1);
-                }
-
-                //проверка центрального числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow1);
-                }
-
-                //проверка правого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow1 + 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow1 + 1);
-                }
-
-                //повышаем индекс для получения след. числа в первой строке
-                tmpIndexRow1++;
-
-            } else {
-
-                //проверка левого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow3 - 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow3 - 1);
-                }
-
-                //проверка центрального числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow3, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow3);
-                }
-
-                //проверка правого числа на 3-х соседей
-                if (checkAdd(tmpRow, tmpNumberRow3 + 1, false, row1, row2, row3)) {
-                    tmpRow.listX.add(tmpNumberRow3 + 1);
-                }
-
-                //повышаем индекс для получения след. числа в третьей строке
-                tmpIndexRow3++;
-            }
+        if (rowSize1 != 0) {
+            row1Min = row1.listX.get(0);
+            row1Max = row1.listX.get(rowSize1 - 1);
         }
 
-        //возвращаем готовую центральною строку
+        if (rowSize2 != 0) {
+            row2Min = row2.listX.get(0);
+            row2Max = row2.listX.get(rowSize2 - 1);
+        }
+
+        if (rowSize3 != 0) {
+            row3Min = row3.listX.get(0);
+            row3Max = row3.listX.get(rowSize3 - 1);
+        }
+
+        int xmin = min(min(row1Min, row2Min), row3Min);
+        int xmax = max(max(row1Max, row2Max), row3Max);
+
+        //строка для записи готовой центральной строки
+        Row tmpRow = new Row();
+
+        for (int currentInteger = xmin - 1; currentInteger <= xmax + 1; currentInteger++) {
+
+            int count = 0;
+
+            //получение местоположения цетрального столбца
+            int ti = binarySearch(row1.listX, currentInteger);
+            int ci = binarySearch(row2.listX, currentInteger);
+            int bi = binarySearch(row3.listX, currentInteger);
+
+            //если бинарный поиск нашел индекс чисел центрального столбца, то суммируем не считая центральную точку
+            count = (ti >= 0) ? count + 1 : count;
+            count = (bi >= 0) ? count + 1 : count;
+
+            //подсчет количества левых и правых соседей в трех строках
+            count += countLeftAndRight(row1.listX, ti, currentInteger);
+            count += countLeftAndRight(row2.listX, ci, currentInteger);
+            count += countLeftAndRight(row3.listX, bi, currentInteger);
+
+
+            if (count == 3) {
+                tmpRow.listX.add(currentInteger);
+            } else if ((ci >= 0) && (count == 2)) {
+                tmpRow.listX.add(currentInteger);
+            } else {
+
+                if (count == 0 && ci < 0) {
+
+                    if (row1Min != Integer.MAX_VALUE && rowSize1 > -(ti + 1)) {
+                        row1Min = row1.listX.get(-(ti + 1));
+                    } else if (row1Min != Integer.MAX_VALUE && rowSize1 == -(ti + 1)) {
+                        row1Min = Integer.MAX_VALUE;
+                    }
+
+                    if (row2Min != Integer.MAX_VALUE && rowSize2 > -(ci + 1)) {
+                        row2Min = row2.listX.get(-(ci + 1));
+                    } else if (row2Min != Integer.MAX_VALUE && rowSize2 == -(ci + 1)) {
+                        row2Min = Integer.MAX_VALUE;
+                    }
+
+                    if (row3Min != Integer.MAX_VALUE && rowSize3 > -(bi + 1)) {
+                        row3Min = row3.listX.get(-(bi + 1));
+                    } else if (row3Min != Integer.MAX_VALUE && rowSize3 == -(bi + 1)) {
+                        row3Min = Integer.MAX_VALUE;
+                    }
+
+                    currentInteger = min(min(row1Min, row2Min), row3Min) - 2;
+                }
+            }
+
+
+
+        }
+
         return tmpRow;
+
     }
 
 
-    private static int updateNumber(Row row, int rowSize, int tmpIndexRow, int currentNumber) {
-
-        //проверка на существование строки и выхода за пределы списка
-        if (rowSize != 0 && (tmpIndexRow < rowSize)) {
-
-            return row.listX.get(tmpIndexRow);
-        } else {
-
-            return currentNumber;
-        }
-    }
-
-    //проверка на добавление точки в строку с разным количеством соседей,
-    //который определяет flagCntNb: 1 -- 2 или 3 соседа; 0 -- 3 соседа.
-    private static boolean checkAdd(Row tmpRow, int addPoint, boolean flagCntNb, Row row1, Row row2, Row row3) {
-
-        //возвращаемое разрешение или отказ на добавление точки в центральную строку
-        boolean done = false;
-
-        int sizeRow = tmpRow.listX.size();
-
-        if (flagCntNb) {
-
-            //проверка выхода за пределы списка
-            if ((((sizeRow > 0) && (tmpRow.listX.get(sizeRow - 1) < addPoint)) || (sizeRow == 0))) {
-
-                int tmpCntNb = countNeighbours(row1, row2, row3, addPoint);
-
-                if ((tmpCntNb == 2) || (tmpCntNb == 3)) {
-
-                    done = true;
-                }
-
-            } else {
-                done = false;
-            }
-
-        } else {
-
-            //проверка выхода за пределы списка и количество соседей = 3
-            if ((((sizeRow > 0) && (tmpRow.listX.get(sizeRow - 1) < addPoint)) || (sizeRow == 0))
-                    && (countNeighbours(row1, row2, row3, addPoint) == 3)) {
-                done = true;
-            } else {
-                done = false;
-            }
-        }
-
-        return done;
-    }
-
-    //нахождение минимального числа из трех
-    private static int minNumber(int a, int b, int c) {
-
-        int smallest;
-
-        if (a <= b && a <= c) {
-
-            smallest = a;
-        } else if (b <= c && b <= a) {
-
-            smallest = b;
-        } else {
-
-            smallest = c;
-        }
-
-        return smallest;
-    }
-
-    //общий подсчет соседей
-    //на вход принимает 3 строки и проверяемое число в центральной строке
-    private static int countNeighbours(Row row1, Row row2, Row row3, Integer currentInteger) {
-
-        int count = 0;
-
-        //получение местоположения цетрального столбца
-        int ti = binarySearch(row1.listX, currentInteger);
-        int ci = binarySearch(row2.listX, currentInteger);
-        int bi = binarySearch(row3.listX, currentInteger);
-
-        //если бинарный поиск нашел индекс чисел центрального столбца, то суммируем не считая центральную точку
-        count = (ti >= 0) ? count + 1 : count;
-        count = (bi >= 0) ? count + 1 : count;
-
-        //подсчет количества левых и правых соседей в трех строках
-        count += countLeftAndRight(row1.listX, ti, currentInteger);
-        count += countLeftAndRight(row2.listX, ci, currentInteger);
-        count += countLeftAndRight(row3.listX, bi, currentInteger);
-
-        //возвращаем общее количество для currentInteger
-        return count;
-    }
-
-    //счтаем левых и правых соседей в списке, исходя от индекса центральной точки
+    //считаем левых и правых соседей в списке, исходя от индекса центральной точки
     private static int countLeftAndRight(ArrayList<Integer> listX, int centerIndexRow, Integer currentInteger) {
 
         int cntLeftAndRight = 0;
