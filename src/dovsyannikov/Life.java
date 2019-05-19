@@ -256,30 +256,27 @@ public class Life {
 
                 if (count == 0 && ci < 0) {
 
-                    if (row1Min != Integer.MAX_VALUE && rowSize1 > -(ti + 1)) {
+                    if ((row1Min != Integer.MAX_VALUE) && (rowSize1 > -(ti + 1))) {
                         row1Min = row1.listX.get(-(ti + 1));
-                    } else if (row1Min != Integer.MAX_VALUE && rowSize1 == -(ti + 1)) {
+                    } else if ((row1Min != Integer.MAX_VALUE) && (rowSize1 == -(ti + 1))) {
                         row1Min = Integer.MAX_VALUE;
                     }
 
-                    if (row2Min != Integer.MAX_VALUE && rowSize2 > -(ci + 1)) {
+                    if ((row2Min != Integer.MAX_VALUE) && (rowSize2 > -(ci + 1))) {
                         row2Min = row2.listX.get(-(ci + 1));
-                    } else if (row2Min != Integer.MAX_VALUE && rowSize2 == -(ci + 1)) {
+                    } else if ((row2Min != Integer.MAX_VALUE) && (rowSize2 == -(ci + 1))) {
                         row2Min = Integer.MAX_VALUE;
                     }
 
-                    if (row3Min != Integer.MAX_VALUE && rowSize3 > -(bi + 1)) {
+                    if ((row3Min != Integer.MAX_VALUE) && (rowSize3 > -(bi + 1))) {
                         row3Min = row3.listX.get(-(bi + 1));
-                    } else if (row3Min != Integer.MAX_VALUE && rowSize3 == -(bi + 1)) {
+                    } else if ((row3Min != Integer.MAX_VALUE) && (rowSize3 == -(bi + 1))) {
                         row3Min = Integer.MAX_VALUE;
                     }
 
                     currentInteger = min(min(row1Min, row2Min), row3Min) - 2;
                 }
             }
-
-
-
         }
 
         return tmpRow;
