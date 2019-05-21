@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="stdlib-package" level="project" />
+    <orderEntry type="library" name="trove-3.1a1" level="project" />
   </component>
 </module>

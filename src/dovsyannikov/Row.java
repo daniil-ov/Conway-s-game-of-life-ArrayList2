@@ -1,28 +1,24 @@
 package dovsyannikov;
 
-import java.util.ArrayList;
+import gnu.trove.list.array.TIntArrayList;
 
 public class Row {
 
     public int y;
-    public ArrayList<Integer> listX;
+    public TIntArrayList listX;
 
-    public Row(int y, ArrayList<Integer> listX) {
-        this.y = y;
-        this.listX = listX;
-    }
 
     public Row(int i) {
-        ArrayList<Integer> listX = new ArrayList<>();
-        Integer y = i;
+        TIntArrayList listX = new TIntArrayList();
+        int y = i;
 
         this.y = y;
         this.listX = listX;
     }
 
     public Row() {
-        ArrayList<Integer> listX = new ArrayList<>();
-        Integer y = 0;
+        TIntArrayList listX = new TIntArrayList();
+        int y = 0;
 
         this.y = y;
         this.listX = listX;
@@ -30,7 +26,7 @@ public class Row {
 
     @Override
     public String toString() {
-        return "String " + y + ", x = " + listX.toString();
+        return "Row " + y + ", x = " + listX.toString();
     }
 
     /*@Override

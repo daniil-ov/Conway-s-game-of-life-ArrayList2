@@ -6,9 +6,8 @@ import java.awt.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.util.Collections.binarySearch;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.procedure.TIntProcedure;
 
 public class Life {
 
@@ -110,9 +109,13 @@ public class Life {
         StdDraw.setYscale(centerY - (heightField / 2), centerY + (heightField / 2));
 
         for (Row strings : currentLife) {
-            for (Integer tmpX : strings.listX) {
-                StdDraw.filledSquare(tmpX, strings.y, 0.000001);
-            }
+            strings.listX.forEach(new TIntProcedure() {
+                @Override
+                public boolean execute(int i) {
+                    StdDraw.filledSquare(i, strings.y, 0.000001);
+                    return true;
+                }
+            });
         }
 
         StdDraw.show();
@@ -195,36 +198,21 @@ public class Life {
     //на вход получаем три строки и возвращаем готовую цетральную
     private static Row handlerStrings(Row row1, Row row2, Row row3) {
 
-        int row1Min = Integer.MAX_VALUE;
-        int row2Min = Integer.MAX_VALUE;
-        int row3Min = Integer.MAX_VALUE;
+        int ti = -1;
+        int ci = -1;
+        int bi = -1;
 
-        int row1Max = Integer.MIN_VALUE;
-        int row2Max = Integer.MIN_VALUE;
-        int row3Max = Integer.MIN_VALUE;
+        int row1Min;
+        int row2Min;
+        int row3Min;
 
-        //запись размера трех строк
-        int rowSize1 = row1.listX.size();
-        int rowSize2 = row2.listX.size();
-        int rowSize3 = row3.listX.size();
+        int xmin = row1.listX.isEmpty() ? Integer.MAX_VALUE : row1.listX.get(0);
+        xmin = row2.listX.isEmpty() ? xmin : Math.min(xmin, row2.listX.get(0));
+        xmin = row3.listX.isEmpty() ? xmin : Math.min(xmin, row3.listX.get(0));
 
-        if (rowSize1 != 0) {
-            row1Min = row1.listX.get(0);
-            row1Max = row1.listX.get(rowSize1 - 1);
-        }
-
-        if (rowSize2 != 0) {
-            row2Min = row2.listX.get(0);
-            row2Max = row2.listX.get(rowSize2 - 1);
-        }
-
-        if (rowSize3 != 0) {
-            row3Min = row3.listX.get(0);
-            row3Max = row3.listX.get(rowSize3 - 1);
-        }
-
-        int xmin = min(min(row1Min, row2Min), row3Min);
-        int xmax = max(max(row1Max, row2Max), row3Max);
+        int xmax = row1.listX.isEmpty() ? Integer.MIN_VALUE : row1.listX.get(row1.listX.size() - 1);
+        xmax = row2.listX.isEmpty() ? xmax : Math.max(xmax, row2.listX.get(row2.listX.size() - 1));
+        xmax = row3.listX.isEmpty() ? xmax : Math.max(xmax, row3.listX.get(row3.listX.size() - 1));
 
         //строка для записи готовой центральной строки
         Row tmpRow = new Row();
@@ -233,10 +221,14 @@ public class Life {
 
             int count = 0;
 
+            ti = updateIndex(ti, row1, currentInteger);
+            ci = updateIndex(ci, row2, currentInteger);
+            bi = updateIndex(bi, row3, currentInteger);
+
             //получение местоположения цетрального столбца
-            int ti = binarySearch(row1.listX, currentInteger);
-            int ci = binarySearch(row2.listX, currentInteger);
-            int bi = binarySearch(row3.listX, currentInteger);
+            /*int ti = row1.listX.binarySearch(currentInteger);
+            int ci = row2.listX.binarySearch(currentInteger);
+            int bi = row3.listX.binarySearch(currentInteger);*/
 
             //если бинарный поиск нашел индекс чисел центрального столбца, то суммируем не считая центральную точку
             count = (ti >= 0) ? count + 1 : count;
@@ -256,25 +248,11 @@ public class Life {
 
                 if (count == 0 && ci < 0) {
 
-                    if ((row1Min != Integer.MAX_VALUE) && (rowSize1 > -(ti + 1))) {
-                        row1Min = row1.listX.get(-(ti + 1));
-                    } else if ((row1Min != Integer.MAX_VALUE) && (rowSize1 == -(ti + 1))) {
-                        row1Min = Integer.MAX_VALUE;
-                    }
+                    row1Min = (-ti - 1 < row1.listX.size()) ? row1.listX.get(-ti - 1) : Integer.MAX_VALUE;
+                    row2Min = (-ci - 1 < row2.listX.size()) ? row2.listX.get(-ci - 1) : Integer.MAX_VALUE;
+                    row3Min = (-bi - 1 < row3.listX.size()) ? row3.listX.get(-bi - 1) : Integer.MAX_VALUE;
 
-                    if ((row2Min != Integer.MAX_VALUE) && (rowSize2 > -(ci + 1))) {
-                        row2Min = row2.listX.get(-(ci + 1));
-                    } else if ((row2Min != Integer.MAX_VALUE) && (rowSize2 == -(ci + 1))) {
-                        row2Min = Integer.MAX_VALUE;
-                    }
-
-                    if ((row3Min != Integer.MAX_VALUE) && (rowSize3 > -(bi + 1))) {
-                        row3Min = row3.listX.get(-(bi + 1));
-                    } else if ((row3Min != Integer.MAX_VALUE) && (rowSize3 == -(bi + 1))) {
-                        row3Min = Integer.MAX_VALUE;
-                    }
-
-                    currentInteger = min(min(row1Min, row2Min), row3Min) - 2;
+                    currentInteger = Math.min(Math.min(row1Min, row2Min), row3Min) - 2;
                 }
             }
         }
@@ -283,23 +261,41 @@ public class Life {
 
     }
 
+    private static int updateIndex(int tmpIndex, Row row, int currentInteger) {
+        int newIndex = tmpIndex;
+
+        if (tmpIndex < 0) {
+            if ((Math.abs(tmpIndex) - 1 < row.listX.size()) && (row.listX.get(Math.abs(tmpIndex) - 1) == currentInteger)) {
+                newIndex = Math.abs(tmpIndex) - 1;
+            }
+        } else {
+            if ((tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
+                newIndex = tmpIndex + 1;
+            } else {
+                newIndex = -tmpIndex - 2;
+            }
+        }
+
+        return newIndex;
+    }
+
 
     //считаем левых и правых соседей в списке, исходя от индекса центральной точки
-    private static int countLeftAndRight(ArrayList<Integer> listX, int centerIndexRow, Integer currentInteger) {
+    private static int countLeftAndRight(TIntArrayList listX, int centerIndexRow, int currentInteger) {
 
         int cntLeftAndRight = 0;
 
-        int posLeft = (centerIndexRow >= 0) ? centerIndexRow - 1 : -centerIndexRow - 2; // позиция для проверки левого
-        int posRight = (centerIndexRow >= 0) ? centerIndexRow + 1 : -centerIndexRow - 1; // позиция для проверки правого
+        int posLeft = Math.abs((centerIndexRow >= 0) ? centerIndexRow - 1 : -centerIndexRow - 2); // позиция для проверки левого
+        int posRight = Math.abs((centerIndexRow >= 0) ? centerIndexRow + 1 : -centerIndexRow - 1); // позиция для проверки правого
 
         int size = listX.size();
 
-        if ((posLeft >= 0) && (posLeft < size) && (listX.get(posLeft) == currentInteger - 1)) {
+        if ((posLeft < size) && (listX.get(posLeft) == currentInteger - 1)) {
 
             cntLeftAndRight++;
         }
 
-        if ((posRight >= 0) && (posRight < size) && (listX.get(posRight) == currentInteger + 1)) {
+        if ((posRight < size) && (listX.get(posRight) == currentInteger + 1)) {
 
             cntLeftAndRight++;
         }
