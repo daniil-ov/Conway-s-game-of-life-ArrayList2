@@ -6,8 +6,8 @@ import java.awt.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.procedure.TIntProcedure;
 
 public class Life {
 
@@ -108,14 +108,14 @@ public class Life {
         StdDraw.setXscale(centerX - (widthField / 2), centerX + (widthField / 2));
         StdDraw.setYscale(centerY - (heightField / 2), centerY + (heightField / 2));
 
+
         for (Row strings : currentLife) {
-            strings.listX.forEach(new TIntProcedure() {
-                @Override
-                public boolean execute(int i) {
-                    StdDraw.filledSquare(i, strings.y, 0.000001);
-                    return true;
+            if ((strings.y > centerY - (heightField / 2)) && (strings.y < centerY + (heightField / 2))) {
+                TIntIterator tIntIterator = strings.listX.iterator();
+                while (tIntIterator.hasNext()) {
+                    StdDraw.filledSquare(tIntIterator.next(), strings.y, 0.000001);
                 }
-            });
+            }
         }
 
         StdDraw.show();
@@ -264,12 +264,14 @@ public class Life {
     private static int updateIndex(int tmpIndex, Row row, int currentInteger) {
         int newIndex = tmpIndex;
 
+        int sizeRow = row.listX.size();
+
         if (tmpIndex < 0) {
-            if ((Math.abs(tmpIndex) - 1 < row.listX.size()) && (row.listX.get(Math.abs(tmpIndex) - 1) == currentInteger)) {
-                newIndex = Math.abs(tmpIndex) - 1;
+            if ((-tmpIndex - 1 < sizeRow) && (row.listX.get(-tmpIndex - 1) == currentInteger)) {
+                newIndex = -tmpIndex - 1;
             }
         } else {
-            if ((tmpIndex + 1 < row.listX.size()) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
+            if ((tmpIndex + 1 < sizeRow) && (row.listX.get(tmpIndex + 1) == currentInteger)) {
                 newIndex = tmpIndex + 1;
             } else {
                 newIndex = -tmpIndex - 2;
@@ -285,17 +287,15 @@ public class Life {
 
         int cntLeftAndRight = 0;
 
-        int posLeft = Math.abs((centerIndexRow >= 0) ? centerIndexRow - 1 : -centerIndexRow - 2); // позиция для проверки левого
-        int posRight = Math.abs((centerIndexRow >= 0) ? centerIndexRow + 1 : -centerIndexRow - 1); // позиция для проверки правого
+        int posLeft = (centerIndexRow >= 0) ? centerIndexRow - 1 : -centerIndexRow - 2; // позиция для проверки левого
+        int posRight = (centerIndexRow >= 0) ? centerIndexRow + 1 : -centerIndexRow - 1; // позиция для проверки правого
 
-        int size = listX.size();
-
-        if ((posLeft < size) && (listX.get(posLeft) == currentInteger - 1)) {
+        if ((posLeft >= 0) && (listX.get(posLeft) == currentInteger - 1)) {
 
             cntLeftAndRight++;
         }
 
-        if ((posRight < size) && (listX.get(posRight) == currentInteger + 1)) {
+        if ((posRight < listX.size()) && (listX.get(posRight) == currentInteger + 1)) {
 
             cntLeftAndRight++;
         }
