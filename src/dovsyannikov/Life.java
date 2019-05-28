@@ -5,6 +5,8 @@ import edu.princeton.cs.introcs.StdDraw;
 import java.awt.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
@@ -19,6 +21,8 @@ public class Life {
 
     public static ArrayList<Row> currentLife = new ArrayList<>();
     public static ArrayList<Row> nextStepLife = new ArrayList<>();
+
+    private final static int processors = Runtime.getRuntime().availableProcessors();
 
     static String fileName = "caterpillar.rle";
     //static String fileName = "s0072.rle";
@@ -54,6 +58,7 @@ public class Life {
             //StdDraw.pause(500);
         }
     }
+
 
     //метод для перемещения и масшатабирования поля
     private static void moveField() {
@@ -132,54 +137,95 @@ public class Life {
 
         ArrayList<Row> tmp; //временная переменная для обмена ссылками текущего поколения и следующего
 
+        int sizeLife = currentLife.size();
 
-        if (handlerStrings(currentLife.get(0), currentLife.get(1), currentLife.get(2)).listX.isEmpty()) {
-            //если не возродится жизнь в первой строке, то считать следующее поле со смещением не нужно
+        int ymax = currentLife.get(0).y;
+        int ymin = currentLife.get(sizeLife - 1).y;
 
-            //добавляем 2 технологические строки для подсчета след. поколения
-            for (int i = 2; i > 0; i--) {
+        Row r1 = new Row();
+        Row r2 = new Row();
 
-                nextStepLife.add(new Row(currentLife.get(2).y + i));
+        Row tmpRow = handlerStrings(r1, r2, currentLife.get(0));
+        if (!tmpRow.listX.isEmpty()) {
+            tmpRow.y = ymax + 1;
+            nextStepLife.add(tmpRow);
+        }
+
+        tmpRow = handlerStrings(r2, currentLife.get(0), currentLife.get(1));
+        tmpRow.y = ymax;
+        nextStepLife.add(tmpRow);
+
+
+        if (sizeLife > 100) {
+            ExecutorService executorService = Executors.newFixedThreadPool(processors);
+            //ExecutorService executorService = Executors.newCachedThreadPool();
+            ArrayList<Callable<ArrayList<Row>>> callables = new ArrayList<>();
+
+            int partLife = ((sizeLife - 2) / processors);
+            for (int i = 1; i <= ((partLife * (processors - 1)) + 1); i = i + partLife) {
+
+                    int finalI = i;
+                    callables.add(new Callable<ArrayList<Row>>() {
+                        @Override
+                        public ArrayList<Row> call() {
+
+                            ArrayList<Row> tmpALRow = new ArrayList<>();
+
+                            Row tmpRow;
+
+                            int start = finalI;
+                            int end = 0;
+
+                            if (finalI != ((partLife * (processors - 1)) + 1)) {
+                                end = finalI + partLife - 1;
+                            } else if (finalI == ((partLife * (processors - 1)) + 1)) {
+                                end = sizeLife - 2;
+                            }
+
+                            for (int i = start; i <= end; i++) {
+                                tmpRow = handlerStrings(currentLife.get(i - 1), currentLife.get(i), currentLife.get(i + 1));
+                                tmpRow.y = currentLife.get(i).y;
+                                tmpALRow.add(tmpRow);
+                            }
+                            System.out.println("Текущий поток: " + Thread.currentThread().getName());
+                            return tmpALRow;
+                        }
+                    });
             }
 
-            //проход по всем строкам в поле
-            for (int i = 2; i < currentLife.size() - 1; i++) {
+            try {
+                List<Future<ArrayList<Row>>> futures = executorService.invokeAll(callables);
+                for (Future<ArrayList<Row>> future : futures) {
 
-                //получаем новую центральную строку и записываем ее в новое поколение
-                Row tmpRow = handlerStrings(currentLife.get(i - 1), currentLife.get(i), currentLife.get(i + 1));
-                tmpRow.y = currentLife.get(i).y;
+                    nextStepLife.addAll(future.get());
+                }
 
-                nextStepLife.add(i, tmpRow);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
+
+            callables.clear();
+            executorService.shutdown();
 
         } else {
-            //жизнь возродится в первой строке и нужно записывать след. поколение на строку ниже
-
-            //добавляем 2 технологические строки для подсчета след. поколения, но с учетом того, что будем записывать со смещением
-            // на одну строку ниже
-            for (int i = 3; i > 1; i--) {
-
-                nextStepLife.add(new Row(currentLife.get(2).y + i));
-            }
-
-            //проход по всем строкам в поле и запись со смещением
-            for (int i = 1; i < currentLife.size() - 1; i++) {
-
-                //получаем новую центральную строку и записываем ее в новое поколение
-                Row tmpRow = handlerStrings(currentLife.get(i - 1), currentLife.get(i), currentLife.get(i + 1));
+            for (int i = 1; i <= sizeLife - 2; i++) {
+                tmpRow = handlerStrings(currentLife.get(i - 1), currentLife.get(i), currentLife.get(i + 1));
                 tmpRow.y = currentLife.get(i).y;
-
-                nextStepLife.add(i + 1, tmpRow);
+                nextStepLife.add(tmpRow);
             }
         }
 
-        //добавляем 2 технологические строки снизу для подсчета след. поколения, если  какая-нибудь из них занята
-        for (int i = 1; i < 3; i++) {
 
-            if (!(nextStepLife.get(nextStepLife.size() - i).listX.isEmpty())) {
+        tmpRow = handlerStrings(currentLife.get(sizeLife - 2), currentLife.get(sizeLife - 1), r1);
+        tmpRow.y = ymin;
+        nextStepLife.add(tmpRow);
 
-                nextStepLife.add(new Row(nextStepLife.get(nextStepLife.size() - 1).y - i));
-            }
+        tmpRow = handlerStrings(currentLife.get(sizeLife - 1), r1, r2);
+        if (!tmpRow.listX.isEmpty()) {
+            tmpRow.y = ymin - 1;
+            nextStepLife.add(tmpRow);
         }
 
         //очищаем исходное поле

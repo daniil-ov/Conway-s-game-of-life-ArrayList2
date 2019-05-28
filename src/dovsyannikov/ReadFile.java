@@ -13,14 +13,12 @@ import static dovsyannikov.Life.currentLife;
 
 public class ReadFile {
 
-    static Integer tmpCursorY = 2;
+    static Integer tmpCursorY = 0;
     static Integer tmpCursorX = 0;
 
     public static void read(String fileName, Charset cs) {
 
-        for (int i = 0; i < 3; i++) {
-            currentLife.add(new Row(-i));
-        }
+        currentLife.add(new Row(0));
 
         String regex = "\\d{0,}[ob$]";
         Pattern pattern = Pattern.compile(regex);
@@ -71,11 +69,6 @@ public class ReadFile {
         } catch (IOException e) {
 
             e.printStackTrace();
-        } finally {
-            for (int i = 0; i < 2; i++) {
-                currentLife.add(new Row(-currentLife.size()));
-            }
-
         }
 
         long finish = System.currentTimeMillis();

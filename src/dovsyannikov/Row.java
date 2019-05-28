@@ -29,21 +29,4 @@ public class Row {
         return "Row " + y + ", x = " + listX.toString();
     }
 
-    /*@Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Row row = (Row) o;
-
-        if (y != row.y) return false;
-        return listX != null ? listX.equals(row.listX) : row.listX == null;
-    }*/
-
-    @Override
-    public int hashCode() {
-        int result = y;
-        result = 31 * result + (listX != null ? listX.hashCode() : 0);
-        return result;
-    }
 }
