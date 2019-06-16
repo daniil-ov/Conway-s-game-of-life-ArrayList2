@@ -241,7 +241,7 @@ public class Life {
 
         long finish = System.currentTimeMillis();
 
-        System.out.println("Время рассчета след. поколения: " + (finish - start) + " с количеством частей: ");
+        System.out.println("Время рассчета след. поколения: " + (finish - start));
     }
 
     //на вход получаем три строки и возвращаем готовую цетральную
