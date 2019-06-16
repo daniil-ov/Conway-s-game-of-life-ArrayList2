@@ -23,6 +23,8 @@ public class Life {
     public static ArrayList<Row> nextStepLife = new ArrayList<>();
 
     private final static int processors = Runtime.getRuntime().availableProcessors();
+    private static ExecutorService executorService = Executors.newFixedThreadPool(processors);
+    //private static ExecutorService executorService = Executors.newCachedThreadPool();
 
     static String fileName = "caterpillar.rle";
     //static String fileName = "s0072.rle";
@@ -37,6 +39,7 @@ public class Life {
 
         createField();
         runLife();
+
     }
 
 
@@ -157,40 +160,40 @@ public class Life {
 
 
         if (sizeLife > 100) {
-            ExecutorService executorService = Executors.newFixedThreadPool(processors);
-            //ExecutorService executorService = Executors.newCachedThreadPool();
+
+            ArrayList<FutureTask<ArrayList<Row>>> futuresTasks = new ArrayList<>();
             ArrayList<Callable<ArrayList<Row>>> callables = new ArrayList<>();
 
-            int partLife = ((sizeLife - 2) / processors);
-            for (int i = 1; i <= ((partLife * (processors - 1)) + 1); i = i + partLife) {
+            int cntParts = processors * 100;
+
+            int partLife = ((sizeLife - 2) / cntParts);
+            for (int i = 1; i <= ((partLife * (cntParts - 1)) + 1); i = i + partLife) {
 
                     int finalI = i;
-                    callables.add(new Callable<ArrayList<Row>>() {
-                        @Override
-                        public ArrayList<Row> call() {
 
-                            ArrayList<Row> tmpALRow = new ArrayList<>();
+                callables.add(() -> {
 
-                            Row tmpRow;
+                    ArrayList<Row> tmpALRow = new ArrayList<>();
 
-                            int start = finalI;
-                            int end = 0;
+                    Row tmpRow1;
 
-                            if (finalI != ((partLife * (processors - 1)) + 1)) {
-                                end = finalI + partLife - 1;
-                            } else if (finalI == ((partLife * (processors - 1)) + 1)) {
-                                end = sizeLife - 2;
-                            }
+                    int start2 = finalI;
+                    int end = 0;
 
-                            for (int i = start; i <= end; i++) {
-                                tmpRow = handlerStrings(currentLife.get(i - 1), currentLife.get(i), currentLife.get(i + 1));
-                                tmpRow.y = currentLife.get(i).y;
-                                tmpALRow.add(tmpRow);
-                            }
-                            System.out.println("Текущий поток: " + Thread.currentThread().getName());
-                            return tmpALRow;
-                        }
-                    });
+                    if (finalI != ((partLife * (cntParts - 1)) + 1)) {
+                        end = finalI + partLife - 1;
+                    } else if (finalI == ((partLife * (cntParts - 1)) + 1)) {
+                        end = sizeLife - 2;
+                    }
+
+                    for (int i1 = start2; i1 <= end; i1++) {
+                        tmpRow1 = handlerStrings(currentLife.get(i1 - 1), currentLife.get(i1), currentLife.get(i1 + 1));
+                        tmpRow1.y = currentLife.get(i1).y;
+                        tmpALRow.add(tmpRow1);
+                    }
+
+                    return tmpALRow;
+                });
             }
 
             try {
@@ -206,8 +209,8 @@ public class Life {
                 e.printStackTrace();
             }
 
-            callables.clear();
-            executorService.shutdown();
+            futuresTasks.clear();
+            //executorService.shutdown();
 
         } else {
             for (int i = 1; i <= sizeLife - 2; i++) {
@@ -238,7 +241,7 @@ public class Life {
 
         long finish = System.currentTimeMillis();
 
-        System.out.println("Время рассчета след. поколения: " + (finish - start));
+        System.out.println("Время рассчета след. поколения: " + (finish - start) + " с количеством частей: ");
     }
 
     //на вход получаем три строки и возвращаем готовую цетральную
