@@ -161,44 +161,51 @@ public class Life {
 
         if (sizeLife > 100) {
 
-            ArrayList<FutureTask<ArrayList<Row>>> futuresTasks = new ArrayList<>();
-            ArrayList<Callable<ArrayList<Row>>> callables = new ArrayList<>();
+            ArrayList<Future<ArrayList<Row>>> futuresTasks = new ArrayList<>();
+            //ArrayList<Callable<ArrayList<Row>>> callables = new ArrayList<>();
 
             int cntParts = processors * 100;
 
             int partLife = ((sizeLife - 2) / cntParts);
             for (int i = 1; i <= ((partLife * (cntParts - 1)) + 1); i = i + partLife) {
 
-                    int finalI = i;
+                int finalI = i;
 
-                callables.add(() -> {
 
-                    ArrayList<Row> tmpALRow = new ArrayList<>();
+                Callable task = () -> new Callable<ArrayList<Row>>() {
+                    @Override
+                    public ArrayList<Row> call() throws Exception {
 
-                    Row tmpRow1;
+                        ArrayList<Row> tmpALRow = new ArrayList<>();
 
-                    int start2 = finalI;
-                    int end = 0;
+                        Row tmpRow1;
 
-                    if (finalI != ((partLife * (cntParts - 1)) + 1)) {
-                        end = finalI + partLife - 1;
-                    } else if (finalI == ((partLife * (cntParts - 1)) + 1)) {
-                        end = sizeLife - 2;
+                        int start2 = finalI;
+                        int end = 0;
+
+                        if (finalI != ((partLife * (cntParts - 1)) + 1)) {
+                            end = finalI + partLife - 1;
+                        } else if (finalI == ((partLife * (cntParts - 1)) + 1)) {
+                            end = sizeLife - 2;
+                        }
+
+                        for (int i1 = start2; i1 <= end; i1++) {
+                            tmpRow1 = handlerStrings(currentLife.get(i1 - 1), currentLife.get(i1), currentLife.get(i1 + 1));
+                            tmpRow1.y = currentLife.get(i1).y;
+                            tmpALRow.add(tmpRow1);
+                        }
+
+                        return tmpALRow;
                     }
+                };
 
-                    for (int i1 = start2; i1 <= end; i1++) {
-                        tmpRow1 = handlerStrings(currentLife.get(i1 - 1), currentLife.get(i1), currentLife.get(i1 + 1));
-                        tmpRow1.y = currentLife.get(i1).y;
-                        tmpALRow.add(tmpRow1);
-                    }
-
-                    return tmpALRow;
-                });
+                futuresTasks.add(executorService.submit(task));
             }
 
             try {
-                List<Future<ArrayList<Row>>> futures = executorService.invokeAll(callables);
-                for (Future<ArrayList<Row>> future : futures) {
+                //List<Future<ArrayList<Row>>> futures = executorService.invokeAll(callables);
+
+                for (Future<ArrayList<Row>> future : futuresTasks) {
 
                     nextStepLife.addAll(future.get());
                 }
